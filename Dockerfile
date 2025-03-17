@@ -5,7 +5,7 @@ FROM rocker/verse:latest
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 
-# Install necessary dependencies and Emacs
+# Install necessary system dependencies for RStan and Emacs
 RUN apt-get update && \
     apt-get install -y \
         emacs \
@@ -13,7 +13,11 @@ RUN apt-get update && \
         sqlite3 \
         python3 \
         python3-pip \
-        libx11-6 && \
+        libx11-6 \
+        gfortran \
+        libssl-dev \
+        libcurl4-openssl-dev \
+        libxml2-dev && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -37,8 +41,17 @@ RUN pip3 install --break-system-packages --no-cache-dir \
     gensim \
     dspy
 
-# Install R packages
-RUN R -e "install.packages(c('gbm', 'pROC'))"
+# Install R packages, including RStan
+RUN R -e "install.packages(c('gbm', 'pROC', 'gridExtra'))"
+
+# Install RStan and dependencies
+RUN R -e "install.packages(c('StanHeaders', 'rstan', 'remotes'), repos='https://cloud.r-project.org/')"
+
+# Install additional RStan dependencies and configure Makevars
+RUN R -e "install.packages(c('devtools'))" && \
+    mkdir -p /home/rstudio/.R && \
+    echo 'CXX14FLAGS=-O3 -march=native -mtune=native' >> /home/rstudio/.R/Makevars && \
+    echo 'CXX14=g++' >> /home/rstudio/.R/Makevars
 
 # Update the rstudio user's UID and GID
 RUN groupmod -g ${GROUP_ID} rstudio && \
