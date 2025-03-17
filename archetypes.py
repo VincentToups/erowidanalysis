@@ -121,6 +121,7 @@ for i, summary in enumerate(data['summary']):
         # Print details of the current record
         print(f"Summary: {summary}")
         print(f"Extracted Archetypes: {result['extracted']}")
+        print(f"Reasoning: {result['reasoning']}")
         
         # Estimate time remaining
         elapsed_time = time.time() - start_time
@@ -140,3 +141,4 @@ df = pd.DataFrame({
     "archetype": archetypes
 })
 df.to_csv("derived_data/archetypes.csv", index=False)
+lm.history
